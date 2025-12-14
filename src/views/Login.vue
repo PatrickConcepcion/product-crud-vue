@@ -1,0 +1,105 @@
+<script setup lang="ts">
+import { computed, reactive, ref } from 'vue'
+import { RouterLink, useRouter } from 'vue-router'
+import { z } from 'zod'
+import { useAuthStore } from '../stores/auth'
+import { useToast } from '../composables/useToast'
+import FormInput from '../components/FormInput.vue'
+import { zodErrorToFieldErrors } from '../lib/zod'
+import { RequestError } from '../lib/requestError'
+import type { FieldErrors } from '../types/errors'
+
+const router = useRouter()
+const authStore = useAuthStore()
+const { success } = useToast()
+
+const loginSchema = z.object({
+  email: z
+    .string({ required_error: 'Email is required' })
+    .trim()
+    .min(1, 'Email is required')
+    .email('Enter a valid email'),
+  password: z.string({ required_error: 'Password is required' }).min(1, 'Password is required'),
+})
+
+const submitLabel = computed(() => (authStore.loading ? 'Signing in…' : 'Sign in'))
+
+const flash = authStore.consumeFlashSuccess()
+if (flash) success(flash)
+
+const values = reactive({
+  email: '',
+  password: '',
+})
+
+const fieldErrors = ref<FieldErrors>({})
+
+const handleLogin = async () => {
+  fieldErrors.value = {}
+  authStore.error = null
+
+  const parsed = loginSchema.safeParse(values)
+  if (!parsed.success) {
+    fieldErrors.value = zodErrorToFieldErrors(parsed.error)
+    return
+  }
+
+  try {
+    await authStore.login(parsed.data)
+    await router.push('/')
+  } catch (err: unknown) {
+    if (err instanceof RequestError && err.fieldErrors) {
+      fieldErrors.value = err.fieldErrors
+    }
+  }
+}
+</script>
+
+<template>
+  <section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+    <h1 class="text-xl font-semibold tracking-tight">Login</h1>
+    <p class="mt-1 text-sm text-slate-600">Enter your email and password.</p>
+
+    <form class="mt-6 space-y-4" @submit.prevent="handleLogin">
+      <p
+        v-if="authStore.error"
+        class="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800"
+      >
+        {{ authStore.error }}
+      </p>
+
+      <FormInput
+        v-model="values.email"
+        name="email"
+        label="Email"
+        type="email"
+        autocomplete="email"
+        :disabled="authStore.loading"
+        :errors="fieldErrors"
+      />
+
+      <FormInput
+        v-model="values.password"
+        name="password"
+        label="Password"
+        type="password"
+        autocomplete="current-password"
+        :disabled="authStore.loading"
+        :errors="fieldErrors"
+      />
+
+      <button
+        type="submit"
+        :disabled="authStore.loading"
+        class="w-full rounded-md bg-slate-900 px-3 py-2 text-sm font-medium text-white disabled:opacity-60"
+      >
+        {{ submitLabel }}
+      </button>
+
+      <p class="text-center text-sm text-slate-600">
+        Don’t have an account?
+        <RouterLink to="/register" class="font-medium text-slate-900 underline">Register</RouterLink>
+      </p>
+    </form>
+  </section>
+</template>

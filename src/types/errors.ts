@@ -1,0 +1,10 @@
+export type FieldErrors = Record<string, string>
+
+export type BackendErrorPayload = {
+  success?: false
+  message?: unknown
+  status?: unknown
+  code?: unknown
+  errors?: unknown
+}
+
