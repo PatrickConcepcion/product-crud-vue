@@ -1,54 +1,170 @@
-# vue-frontend
+# ProductSync - Vue Frontend
 
-This template should help get you started developing with Vue 3 in Vite.
+A modern product management application built with Vue 3, TypeScript, and Tailwind CSS.
 
-## Recommended IDE Setup
+## Features
 
-[VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+- **Authentication** - User registration and login with JWT tokens
+- **Product Management** - Full CRUD operations for products
+- **Form Validation** - Client-side validation with Zod
+- **Toast Notifications** - User feedback via vue3-toastify
+- **Responsive Design** - Mobile-friendly UI with Tailwind CSS
 
-## Recommended Browser Setup
+## Tech Stack
 
-- Chromium-based browsers (Chrome, Edge, Brave, etc.):
-  - [Vue.js devtools](https://chromewebstore.google.com/detail/vuejs-devtools/nhdogjmejiglipccpnnnanhbledajbpd) 
-  - [Turn on Custom Object Formatter in Chrome DevTools](http://bit.ly/object-formatters)
-- Firefox:
-  - [Vue.js devtools](https://addons.mozilla.org/en-US/firefox/addon/vue-js-devtools/)
-  - [Turn on Custom Object Formatter in Firefox DevTools](https://fxdx.dev/firefox-devtools-custom-object-formatters/)
+- **Vue 3** - Composition API with `<script setup>`
+- **TypeScript** - Type-safe development
+- **Pinia** - State management
+- **Vue Router** - Client-side routing
+- **Axios** - HTTP client with interceptors
+- **Zod** - Schema validation
+- **Tailwind CSS** - Utility-first styling
+- **Vite** - Fast development server and bundler
 
-## Type Support for `.vue` Imports in TS
+## Prerequisites
 
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) to make the TypeScript language service aware of `.vue` types.
+- **Node.js** `^20.19.0` or `>=22.12.0`
+- **npm** or **pnpm**
+- **Backend API** running (NestJS backend required)
 
-## Customize configuration
+## Installation
 
-See [Vite Configuration Reference](https://vite.dev/config/).
+### 1. Clone the repository
 
-## Project Setup
+```bash
+git clone <repository-url>
+cd vue-frontend
+```
 
-```sh
+### 2. Install dependencies
+
+```bash
 npm install
 ```
 
-### Compile and Hot-Reload for Development
+### 3. Configure environment variables
 
-```sh
+Copy the example environment file:
+
+```bash
+cp .env.example .env
+```
+
+Edit `.env` and set the API base URL:
+
+```dotenv
+VITE_API_BASE_URL=http://localhost:3000
+```
+
+> **Note:** The backend API must be running on the specified URL.
+
+### 4. Start the development server
+
+```bash
 npm run dev
 ```
 
-### Type-Check, Compile and Minify for Production
+The app will be available at `http://localhost:5173`.
 
-```sh
-npm run build
+## Backend Setup
+
+This frontend requires the NestJS backend API to be running. Follow these steps:
+
+### 1. Navigate to the backend directory
+
+```bash
+cd ../nestjs-backend  # or wherever your backend is located
 ```
 
-### Run Unit Tests with [Vitest](https://vitest.dev/)
+### 2. Install backend dependencies
 
-```sh
-npm run test:unit
+```bash
+npm install
 ```
 
-### Lint with [ESLint](https://eslint.org/)
+### 3. Configure backend environment
 
-```sh
-npm run lint
+Copy and configure the backend `.env` file with your database credentials.
+
+### 4. Run database migrations
+
+```bash
+npm run migration:run
 ```
+
+### 5. Seed the database (optional)
+
+To populate the database with sample data:
+
+```bash
+npm run seed
+```
+
+This will create sample products in the database.
+
+### 6. Start the backend server
+
+```bash
+npm run start:dev
+```
+
+The API will be available at `http://localhost:3000`.
+
+## Usage
+
+### Creating an Account
+
+1. Navigate to `/register`
+2. Fill in your details:
+   - First Name
+   - Last Name
+   - Email
+   - Password
+   - Confirm Password
+3. Click **Register**
+4. You'll be redirected to the login page
+
+### Signing In
+
+1. Navigate to `/login`
+2. Enter your email and password
+3. Click **Sign In**
+4. You'll be redirected to the products page
+
+### Managing Products
+
+Once signed in, you can:
+
+- **View products** - See all products with pagination
+- **Create product** - Click "Add Product" button
+- **Edit product** - Click the edit icon on any product
+- **Delete product** - Click the delete icon on any product
+
+## Available Scripts
+
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Start development server |
+| `npm run build` | Build for production |
+| `npm run preview` | Preview production build |
+| `npm run test:unit` | Run unit tests with Vitest |
+| `npm run lint` | Lint and fix code with ESLint |
+| `npm run format` | Format code with Prettier |
+| `npm run type-check` | Run TypeScript type checking |
+
+## Project Structure
+
+```
+src/
+├── api/            # Axios instance and interceptors
+├── assets/         # Static assets and global CSS
+├── components/     # Reusable Vue components
+├── composables/    # Vue composables (hooks)
+├── lib/            # Utility functions
+├── router/         # Vue Router configuration
+├── stores/         # Pinia stores
+├── types/          # TypeScript type definitions
+└── views/          # Page components
+```
+
+
