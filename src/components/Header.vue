@@ -46,7 +46,7 @@ onUnmounted(() => {
   <header class="border-b border-slate-200 bg-white w-full">
     <div class="mx-auto w-full max-w-5xl px-4 py-3">
       <div class="flex items-center justify-between">
-        <div class="text-xl font-semibold tracking-tight text-slate-900">FYB Technologies</div>
+        <div class="text-xl font-semibold tracking-tight text-slate-900">ProductSync</div>
 
         <div class="flex gap-5 items-center">
           <!-- Desktop: Show user name and logout button -->
