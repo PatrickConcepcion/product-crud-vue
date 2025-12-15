@@ -3,7 +3,6 @@ import { computed, ref } from 'vue'
 import { useApiError } from '../composables/useApiError'
 import api from '../api/axios'
 import type { LoginPayload, LoginResponse, LogoutResponse, RegisterPayload, RegisterResponse } from '../types/auth'
-import type { FieldErrors } from '../types/errors'
 import { RequestError } from '../lib/requestError'
 
 export const useAuthStore = defineStore('auth', () => {
@@ -16,17 +15,17 @@ export const useAuthStore = defineStore('auth', () => {
 
   const isAuthenticated = computed(() => Boolean(token.value))
 
-  function initialize() {
+  const initialize = () => {
     token.value = localStorage.getItem('accessToken')
   }
 
-  function setToken(nextToken: string | null) {
+  const setToken = (nextToken: string | null) => {
     token.value = nextToken
     if (nextToken) localStorage.setItem('accessToken', nextToken)
     else localStorage.removeItem('accessToken')
   }
 
-  async function login(payload: LoginPayload): Promise<LoginResponse> {
+  const login = async (payload: LoginPayload): Promise<LoginResponse> => {
     loading.value = true
     error.value = null
 
@@ -46,9 +45,7 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  async function register(
-    payload: RegisterPayload,
-  ): Promise<RegisterResponse> {
+  const register = async (payload: RegisterPayload): Promise<RegisterResponse> => {
     loading.value = true
     error.value = null
 
@@ -63,13 +60,13 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  function consumeFlashSuccess(): string | null {
+  const consumeFlashSuccess = (): string | null => {
     const message = flashSuccess.value
     flashSuccess.value = null
     return message
   }
 
-  async function logout(): Promise<LogoutResponse | undefined> {
+  const logout = async (): Promise<LogoutResponse | undefined> => {
     const currentToken = token.value
     setToken(null)
     error.value = null

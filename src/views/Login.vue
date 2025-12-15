@@ -8,6 +8,7 @@ import FormInput from '../components/FormInput.vue'
 import { zodErrorToFieldErrors } from '../lib/zod'
 import { RequestError } from '../lib/requestError'
 import type { FieldErrors } from '../types/errors'
+import { createZodBlurValidator } from '../lib/fieldValidation'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -33,6 +34,7 @@ const values = reactive({
 })
 
 const fieldErrors = ref<FieldErrors>({})
+const validateField = createZodBlurValidator(loginSchema, values, fieldErrors)
 
 const handleLogin = async () => {
   fieldErrors.value = {}
@@ -76,6 +78,7 @@ const handleLogin = async () => {
         autocomplete="email"
         :disabled="authStore.loading"
         :errors="fieldErrors"
+        @blur="validateField('email')"
       />
 
       <FormInput
@@ -86,6 +89,7 @@ const handleLogin = async () => {
         autocomplete="current-password"
         :disabled="authStore.loading"
         :errors="fieldErrors"
+        @blur="validateField('password')"
       />
 
       <button

@@ -7,6 +7,7 @@ import FormInput from '../components/FormInput.vue'
 import { zodErrorToFieldErrors } from '../lib/zod'
 import { RequestError } from '../lib/requestError'
 import type { FieldErrors } from '../types/errors'
+import { createZodBlurValidator } from '../lib/fieldValidation'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -46,6 +47,7 @@ const values = reactive({
 })
 
 const fieldErrors = ref<FieldErrors>({})
+const validateField = createZodBlurValidator(registerSchema, values, fieldErrors)
 
 const handleRegister = async () => {
   fieldErrors.value = {}
@@ -89,6 +91,7 @@ const handleRegister = async () => {
         autocomplete="email"
         :disabled="authStore.loading"
         :errors="fieldErrors"
+        @blur="validateField('email')"
       />
 
       <FormInput
@@ -98,6 +101,7 @@ const handleRegister = async () => {
         autocomplete="given-name"
         :disabled="authStore.loading"
         :errors="fieldErrors"
+        @blur="validateField('firstName')"
       />
 
       <FormInput
@@ -107,6 +111,7 @@ const handleRegister = async () => {
         autocomplete="family-name"
         :disabled="authStore.loading"
         :errors="fieldErrors"
+        @blur="validateField('lastName')"
       />
 
       <FormInput
@@ -117,6 +122,7 @@ const handleRegister = async () => {
         autocomplete="new-password"
         :disabled="authStore.loading"
         :errors="fieldErrors"
+        @blur="validateField('password')"
       />
 
       <FormInput
@@ -127,6 +133,7 @@ const handleRegister = async () => {
         autocomplete="new-password"
         :disabled="authStore.loading"
         :errors="fieldErrors"
+        @blur="validateField('confirmPassword')"
       />
 
       <button

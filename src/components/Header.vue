@@ -15,9 +15,9 @@ const logout = async () => {
 
 <template>
   <header class="border-b border-slate-200 bg-white w-full">
-    <div class="mx-auto w-full px-4 py-3 w-full">
-      <div class="flex items-center justify-between w-full">
-        <div class="text-sm font-semibold tracking-tight text-slate-900">FYB</div>
+    <div class="mx-auto w-full max-w-5xl px-4 py-3">
+      <div class="flex items-center justify-between">
+        <div class="text-sm font-semibold tracking-tight text-slate-900">FYB Technologies</div>
 
         <button
           type="button"
@@ -31,4 +31,3 @@ const logout = async () => {
     </div>
   </header>
 </template>
-

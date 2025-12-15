@@ -8,12 +8,14 @@ const props = defineProps<{
   modelValue: string
   errors?: FieldErrors | null
   type?: string
+  inputmode?: 'text' | 'decimal' | 'numeric' | 'tel' | 'search' | 'email' | 'url'
   autocomplete?: string
   disabled?: boolean
 }>()
 
 const emit = defineEmits<{
   (e: 'update:modelValue', value: string): void
+  (e: 'blur'): void
 }>()
 
 const error = computed(() => props.errors?.[props.name])
@@ -34,13 +36,14 @@ const inputClasses = computed(() =>
       :id="name"
       :name="name"
       :type="type ?? 'text'"
+      :inputmode="inputmode"
       :autocomplete="autocomplete"
       :disabled="disabled"
       :value="modelValue"
       :class="inputClasses"
       @input="emit('update:modelValue', ($event.target as HTMLInputElement).value)"
+      @blur="emit('blur')"
     />
     <p v-if="error" class="text-sm text-red-600">{{ error }}</p>
   </div>
 </template>
-
