@@ -2,15 +2,18 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
+import { useUserStore } from '../stores/user'
 import { Icon } from '@iconify/vue'
 import Skeleton from './Skeleton.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
+const userStore = useUserStore()
 const isDropdownOpen = ref(false)
 
 const logout = async () => {
   await authStore.logout()
+  userStore.clearUser()
   await router.push('/login')
   isDropdownOpen.value = false
 }
@@ -48,12 +51,12 @@ onUnmounted(() => {
         <div class="flex gap-5 items-center">
           <!-- Desktop: Show user name and logout button -->
           <div class="hidden md:flex md:gap-5 md:items-center">
-            <div v-if="authStore.loading" class="flex items-center gap-2">
+            <div v-if="userStore.loading" class="flex items-center gap-2">
               <Skeleton height="1rem" width="80px" />
               <Skeleton height="1rem" width="60px" />
             </div>
             <div v-else>
-              {{ authStore.user?.firstName }} {{ authStore.user?.lastName }}
+              {{ userStore.user?.firstName }} {{ userStore.user?.lastName }}
             </div>
             <button
               type="button"
@@ -82,12 +85,12 @@ onUnmounted(() => {
               class="absolute right-0 mt-2 w-60 rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 z-50"
             >
               <div class="px-4 py-2 text-sm text-slate-700 border-b border-slate-200">
-                <div v-if="authStore.loading" class="flex items-center gap-2">
+                <div v-if="userStore.loading" class="flex items-center gap-2">
                   <Skeleton height="1rem" width="60px" />
                   <Skeleton height="1rem" width="50px" />
                 </div>
                 <div v-else>
-                  {{ authStore.user?.firstName }} {{ authStore.user?.lastName }}
+                  {{ userStore.user?.firstName }} {{ userStore.user?.lastName }}
                 </div>
               </div>
               <div class="px-4 py-2">

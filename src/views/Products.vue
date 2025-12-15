@@ -348,7 +348,7 @@ const closeViewModal = () => {
 
     <Modal v-model="isModalOpen" :title="mode === 'edit' ? 'Edit product' : 'Create product'" @update:modelValue="onModalUpdate">
       <form class="space-y-4" @submit.prevent="onSubmit">
-        <FormInput v-model="values.name" name="name" label="Name" :disabled="submitting" :errors="fieldErrors" />
+        <FormInput v-model="values.name" name="name" label="Name" :disabled="submitting" :errors="fieldErrors" @blur="validateField('name')" />
 
         <FormInput
           v-model="values.price"
