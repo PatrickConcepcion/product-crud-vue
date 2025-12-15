@@ -200,7 +200,7 @@ const closeViewModal = () => {
 </script>
 
 <template>
-  <section class="bg-white p-6 shadow-sm">
+  <section class="bg-white p-6 shadow-sm md:pb-6 pb-24">
     <div class="flex items-center justify-between">
       <div>
         <h1 class="text-xl font-semibold tracking-tight">Products</h1>
@@ -209,7 +209,7 @@ const closeViewModal = () => {
       <div class="flex items-center gap-3">
       <button
         type="button"
-        class="rounded-md bg-slate-900 px-3 py-2 text-sm font-medium text-white"
+        class="rounded-md bg-slate-900 px-3 py-2 text-sm font-medium text-white md:block hidden"
         @click="openCreate"
       >
         <span class="inline-flex items-center gap-2">
@@ -268,6 +268,23 @@ const closeViewModal = () => {
           @update:page="onPageChange"
           @update:pageSize="onLimitSelect"
         />
+      </div>
+    </div>
+
+    <!-- Floating Action Button for Mobile -->
+    <div class="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white p-4 shadow-lg border-t border-slate-200">
+      <div class="max-w-[480px] mx-auto">
+        <button
+          type="button"
+          class="w-full rounded-lg bg-slate-900 px-4 py-3 text-white shadow-sm hover:bg-slate-800 transition-colors duration-200"
+          @click="openCreate"
+          aria-label="Create new product"
+        >
+          <span class="inline-flex items-center justify-center gap-2">
+            <Icon icon="mdi:plus" class="h-4 w-4" />
+            <span class="text-sm font-medium">New Product</span>
+          </span>
+        </button>
       </div>
     </div>
 
