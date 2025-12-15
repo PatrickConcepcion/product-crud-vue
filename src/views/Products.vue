@@ -15,6 +15,8 @@ import { createZodBlurValidator } from '../lib/fieldValidation'
 const isModalOpen = ref(false)
 const mode = ref<'create' | 'edit'>('create')
 const selected = ref<Product | null>(null)
+const isDeleteModalOpen = ref(false)
+const productToDelete = ref<Product | null>(null)
 
 const productStore = useProductStore()
 const { page, limit, totalPages, loading } = storeToRefs(productStore)
@@ -145,6 +147,33 @@ const onLimitSelect = async (next: number) => {
   limit.value = next
   await onLimitChange()
 }
+
+const openDeleteModal = (product: Product) => {
+  productToDelete.value = product
+  isDeleteModalOpen.value = true
+}
+
+const onDelete = async (product: Product) => {
+  try {
+    await productStore.deleteItem(product.id)
+    await productStore.getAll(page.value, limit.value)
+  } catch (e) {
+    console.log(e)
+  }
+}
+
+const confirmDelete = async () => {
+  if (productToDelete.value) {
+    await onDelete(productToDelete.value)
+    isDeleteModalOpen.value = false
+    productToDelete.value = null
+  }
+}
+
+const closeDeleteModal = () => {
+  isDeleteModalOpen.value = false
+  productToDelete.value = null
+}
 </script>
 
 <template>
@@ -197,7 +226,7 @@ const onLimitSelect = async (next: number) => {
               class="inline-flex items-center rounded-md p-1 text-slate-600 hover:bg-red-50 hover:text-red-700"
               title="Delete"
               aria-label="Delete product"
-              @click=""
+              @click="openDeleteModal(product)"
             >
               <Icon icon="mdi:delete" class="h-5 w-5" />
             </button>
@@ -263,6 +292,32 @@ const onLimitSelect = async (next: number) => {
           </button>
         </div>
       </form>
+    </Modal>
+
+    <Modal v-model="isDeleteModalOpen" title="Delete Product" @update:modelValue="closeDeleteModal">
+      <div class="space-y-4">
+        <p class="text-sm text-slate-600">
+          Are you sure you want to delete <span class="font-medium text-slate-900">"{{ productToDelete?.name }}"</span>?
+          This action cannot be undone.
+        </p>
+
+        <div class="flex gap-2 pt-2">
+          <button
+            type="button"
+            class="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-900 hover:bg-slate-50"
+            @click="closeDeleteModal"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            class="w-full rounded-md bg-red-600 px-3 py-2 text-sm font-medium text-white hover:bg-red-700"
+            @click="confirmDelete"
+          >
+            Delete
+          </button>
+        </div>
+      </div>
     </Modal>
   </section>
 </template>
