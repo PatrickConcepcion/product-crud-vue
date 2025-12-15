@@ -90,6 +90,7 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   const me = async (): Promise<User> => {
+    loading.value = true
     try {
       const res = await api.get<MeResponse>('/auth/me', { headers: { Authorization: `Bearer ${token.value}` } })
       user.value = res.data.user
@@ -97,6 +98,8 @@ export const useAuthStore = defineStore('auth', () => {
     } catch (err: unknown) {
       user.value = null
       throw throwApiError(err, 'Fetching of your profile failed')
+    } finally {
+      loading.value = false
     }
   }
 

@@ -4,6 +4,7 @@ import { storeToRefs } from 'pinia'
 import Modal from '../components/Modal.vue'
 import FormInput from '../components/FormInput.vue'
 import Pagination from '../components/Pagination.vue'
+import Skeleton from '../components/Skeleton.vue'
 import { z } from 'zod'
 import { zodErrorToFieldErrors } from '../lib/zod'
 import { Icon } from '@iconify/vue'
@@ -11,6 +12,7 @@ import type { FieldErrors } from '../types/errors'
 import type { Product, ProductPayload } from '../types/products'
 import { useProductStore } from '../stores/product'
 import { createZodBlurValidator } from '../lib/fieldValidation'
+import { useToast } from '../composables/useToast'
 
 const isModalOpen = ref(false)
 const mode = ref<'create' | 'edit'>('create')
@@ -26,6 +28,7 @@ const { page, limit, totalPages, loading } = storeToRefs(productStore)
 
 const fieldErrors = ref<FieldErrors>({})
 const submitting = ref(false)
+const { success } = useToast()
 
 const values = reactive({
   name: '',
@@ -113,6 +116,7 @@ const onSubmit = async () => {
         description: parsed.data.description ?? null,
       }
       await productStore.update(selected.value.id, payload)
+      success('Product updated successfully')
     } else {
       const payload: ProductPayload = {
         name: parsed.data.name,
@@ -120,17 +124,16 @@ const onSubmit = async () => {
         description: parsed.data.description ?? null,
       }
       await productStore.create(payload)
+      success('Product created successfully')
     }
 
   } catch (e) {
     console.log(e)
   } finally {
     submitting.value = false
-    close() 
+    close()
   }
 }
-
-
 
 onMounted(async () => {
   await productStore.getAll(1, limit.value)
@@ -168,6 +171,7 @@ const onDelete = async (product: Product) => {
 const confirmDelete = async () => {
   if (productToDelete.value) {
     await onDelete(productToDelete.value)
+    success('Product deleted successfully')
     isDeleteModalOpen.value = false
     productToDelete.value = null
   }
@@ -240,52 +244,74 @@ const closeViewModal = () => {
             </tr>
           </thead>
           <tbody class="bg-white divide-y divide-slate-200">
-            <tr
-              v-for="product in productStore.items"
-              :key="product.id"
-              class="hover:bg-slate-50 cursor-pointer"
-            >
-              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">
-                {{ product.name }}
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
-                ₱{{ product.price }}
-              </td>
-              <td class="px-6 py-4 text-sm text-slate-600 max-w-xs truncate">
-                {{ product.description || 'No description' }}
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                <div class="flex justify-end gap-2">
-                  <button
-                    type="button"
-                    class="inline-flex items-center rounded-md p-1 text-slate-600 hover:bg-slate-100 hover:text-slate-900"
-                    title="View"
-                    aria-label="View product"
-                    @click.stop="openViewModal(product)"
-                  >
-                    <Icon icon="mdi:file-document" class="h-4 w-4" />
-                  </button>
-                  <button
-                    type="button"
-                    class="inline-flex items-center rounded-md p-1 text-slate-600 hover:bg-slate-100 hover:text-slate-900"
-                    title="Edit"
-                    aria-label="Edit product"
-                    @click.stop="openEdit(product)"
-                  >
-                    <Icon icon="mdi:pencil" class="h-4 w-4" />
-                  </button>
-                  <button
-                    type="button"
-                    class="inline-flex items-center rounded-md p-1 text-slate-600 hover:bg-red-50 hover:text-red-700"
-                    title="Delete"
-                    aria-label="Delete product"
-                    @click.stop="openDeleteModal(product)"
-                  >
-                    <Icon icon="mdi:delete" class="h-4 w-4" />
-                  </button>
-                </div>
-              </td>
-            </tr>
+            <template v-if="loading">
+              <tr v-for="n in 6" :key="n">
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <Skeleton height="1rem" width="120px" />
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <Skeleton height="1rem" width="60px" />
+                </td>
+                <td class="px-6 py-4">
+                  <Skeleton height="1rem" width="180px" />
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-right">
+                  <div class="flex justify-end gap-2">
+                    <Skeleton width="1.5rem" height="1.5rem" rounded />
+                    <Skeleton width="1.5rem" height="1.5rem" rounded />
+                    <Skeleton width="1.5rem" height="1.5rem" rounded />
+                  </div>
+                </td>
+              </tr>
+            </template>
+            <template v-else>
+              <tr
+                v-for="product in productStore.items"
+                :key="product.id"
+                class="hover:bg-slate-50 cursor-pointer"
+              >
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">
+                  {{ product.name }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
+                  ₱{{ product.price }}
+                </td>
+                <td class="px-6 py-4 text-sm text-slate-600 max-w-xs truncate">
+                  {{ product.description || 'No description' }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                  <div class="flex justify-end gap-2">
+                    <button
+                      type="button"
+                      class="inline-flex items-center rounded-md p-1 text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                      title="View"
+                      aria-label="View product"
+                      @click.stop="openViewModal(product)"
+                    >
+                      <Icon icon="mdi:file-document" class="h-4 w-4" />
+                    </button>
+                    <button
+                      type="button"
+                      class="inline-flex items-center rounded-md p-1 text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                      title="Edit"
+                      aria-label="Edit product"
+                      @click.stop="openEdit(product)"
+                    >
+                      <Icon icon="mdi:pencil" class="h-4 w-4" />
+                    </button>
+                    <button
+                      type="button"
+                      class="inline-flex items-center rounded-md p-1 text-slate-600 hover:bg-red-50 hover:text-red-700"
+                      title="Delete"
+                      aria-label="Delete product"
+                      @click.stop="openDeleteModal(product)"
+                    >
+                      <Icon icon="mdi:delete" class="h-4 w-4" />
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </template>
           </tbody>
         </table>
       </div>
