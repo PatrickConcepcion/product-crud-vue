@@ -187,6 +187,7 @@ const onLimitSelect = async (next: number) => {
               type="button"
               class="inline-flex items-center rounded-md p-1 text-slate-600 hover:bg-slate-100 hover:text-slate-900"
               title="Edit"
+              aria-label="Edit product"
               @click="openEdit(product)"
             >
               <Icon icon="mdi:pencil" class="h-5 w-5" />
@@ -195,6 +196,7 @@ const onLimitSelect = async (next: number) => {
               type="button"
               class="inline-flex items-center rounded-md p-1 text-slate-600 hover:bg-red-50 hover:text-red-700"
               title="Delete"
+              aria-label="Delete product"
               @click=""
             >
               <Icon icon="mdi:delete" class="h-5 w-5" />
