@@ -225,12 +225,12 @@ const closeViewModal = () => {
         <div
           v-for="product in productStore.items"
           :key="product.id"
-          class="relative rounded-md border border-slate-200 bg-white px-3 py-2 cursor-pointer hover:shadow-md transition-shadow"
+          class="relative rounded-md border border-slate-200 bg-white px-3 py-2 cursor-pointer hover:shadow-xl hover:-translate-y-0.5 hover:border-slate-300 transition-all duration-200"
           @click="openViewModal(product)"
         >
           <div class="pr-20">
             <p class="text-sm font-medium text-slate-900">{{ product.name }}</p>
-            <p class="text-sm text-slate-600">${{ product.price }}</p>
+            <p class="text-sm text-slate-600">₱{{ product.price }}</p>
             <p v-if="product.description" class="mt-1 line-clamp-2 text-sm text-slate-600">
               {{ product.description }}
             </p>
@@ -356,7 +356,7 @@ const closeViewModal = () => {
           </div>
           <div>
             <label class="text-xs font-medium text-slate-500 uppercase tracking-wide">Price</label>
-            <p class="mt-1 text-sm font-medium text-slate-900">${{ viewingProduct.price }}</p>
+            <p class="mt-1 text-sm font-medium text-slate-900">₱{{ viewingProduct.price }}</p>
           </div>
         </div>
 
