@@ -72,7 +72,7 @@ onUnmounted(() => {
             <!-- Dropdown -->
             <div
               v-show="isDropdownOpen"
-              class="absolute right-0 mt-2 w-48 rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 z-50"
+              class="absolute right-0 mt-2 w-60 rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 z-50"
             >
               <div class="px-4 py-2 text-sm text-slate-700 border-b border-slate-200">
                 {{ authStore.user?.firstName }} {{ authStore.user?.lastName }}

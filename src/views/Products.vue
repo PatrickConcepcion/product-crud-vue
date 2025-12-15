@@ -221,41 +221,73 @@ const closeViewModal = () => {
     </div>
 
     <div class="mt-6 flex min-h-[60vh] flex-col">
-      <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <div
-          v-for="product in productStore.items"
-          :key="product.id"
-          class="relative rounded-md border border-slate-200 bg-white px-3 py-2 cursor-pointer hover:shadow-xl hover:-translate-y-0.5 hover:border-slate-300 transition-all duration-200"
-          @click="openViewModal(product)"
-        >
-          <div class="pr-20">
-            <p class="text-sm font-medium text-slate-900">{{ product.name }}</p>
-            <p class="text-sm text-slate-600">₱{{ product.price }}</p>
-            <p v-if="product.description" class="mt-1 line-clamp-2 text-sm text-slate-600">
-              {{ product.description }}
-            </p>
-          </div>
-          <div class="absolute right-3 top-2 flex pointer-events-none">
-            <button
-              type="button"
-              class="pointer-events-auto inline-flex items-center rounded-md p-1 text-slate-600 hover:bg-slate-100 hover:text-slate-900"
-              title="Edit"
-              aria-label="Edit product"
-              @click.stop="openEdit(product)"
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-slate-200">
+          <thead class="bg-slate-50">
+            <tr>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                Name
+              </th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                Price
+              </th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                Description
+              </th>
+              <th scope="col" class="relative px-6 py-3">
+                <span class="sr-only">Actions</span>
+              </th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-slate-200">
+            <tr
+              v-for="product in productStore.items"
+              :key="product.id"
+              class="hover:bg-slate-50 cursor-pointer"
             >
-              <Icon icon="mdi:pencil" class="h-5 w-5" />
-            </button>
-            <button
-              type="button"
-              class="pointer-events-auto inline-flex items-center rounded-md p-1 text-slate-600 hover:bg-red-50 hover:text-red-700"
-              title="Delete"
-              aria-label="Delete product"
-              @click.stop="openDeleteModal(product)"
-            >
-              <Icon icon="mdi:delete" class="h-5 w-5" />
-            </button>
-          </div>
-        </div>
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">
+                {{ product.name }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
+                ₱{{ product.price }}
+              </td>
+              <td class="px-6 py-4 text-sm text-slate-600 max-w-xs truncate">
+                {{ product.description || 'No description' }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                <div class="flex justify-end gap-2">
+                  <button
+                    type="button"
+                    class="inline-flex items-center rounded-md p-1 text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                    title="View"
+                    aria-label="View product"
+                    @click.stop="openViewModal(product)"
+                  >
+                    <Icon icon="mdi:file-document" class="h-4 w-4" />
+                  </button>
+                  <button
+                    type="button"
+                    class="inline-flex items-center rounded-md p-1 text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                    title="Edit"
+                    aria-label="Edit product"
+                    @click.stop="openEdit(product)"
+                  >
+                    <Icon icon="mdi:pencil" class="h-4 w-4" />
+                  </button>
+                  <button
+                    type="button"
+                    class="inline-flex items-center rounded-md p-1 text-slate-600 hover:bg-red-50 hover:text-red-700"
+                    title="Delete"
+                    aria-label="Delete product"
+                    @click.stop="openDeleteModal(product)"
+                  >
+                    <Icon icon="mdi:delete" class="h-4 w-4" />
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
 
       <div class="mt-auto pt-6">
