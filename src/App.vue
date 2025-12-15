@@ -11,7 +11,7 @@ const { isAuthenticated } = storeToRefs(authStore)
 <template>
   <main class="min-h-screen bg-slate-50 text-slate-900">
     <Header v-if="isAuthenticated" />
-    <div class="w-full mx-auto">
+    <div class="mx-auto w-full px-4 py-10" :class="isAuthenticated ? 'max-w-5xl' : 'max-w-md'">
       <RouterView />
     </div>
   </main>
