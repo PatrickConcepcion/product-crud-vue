@@ -2,6 +2,7 @@
 import { storeToRefs } from 'pinia'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
+import { Icon } from '@iconify/vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -21,10 +22,11 @@ const logout = async () => {
 
         <button
           type="button"
-          class="rounded-md bg-slate-900 px-3 py-2 text-sm font-medium text-white disabled:opacity-60"
+          class="inline-flex items-center gap-2 rounded-md bg-slate-900 px-3 py-2 text-sm font-medium text-white disabled:opacity-60"
           :disabled="loading"
           @click="logout"
         >
+          <Icon icon="mdi:logout" class="h-5 w-5" />
           Logout
         </button>
       </div>

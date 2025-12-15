@@ -6,6 +6,7 @@ import FormInput from '../components/FormInput.vue'
 import Pagination from '../components/Pagination.vue'
 import { z } from 'zod'
 import { zodErrorToFieldErrors } from '../lib/zod'
+import { Icon } from '@iconify/vue'
 import type { FieldErrors } from '../types/errors'
 import type { Product, ProductPayload } from '../types/products'
 import { useProductStore } from '../stores/product'
@@ -154,13 +155,16 @@ const onLimitSelect = async (next: number) => {
         <p class="mt-1 text-sm text-slate-600">Manage your products here.</p>
       </div>
       <div class="flex items-center gap-3">
-        <button
-          type="button"
-          class="rounded-md bg-slate-900 px-3 py-2 text-sm font-medium text-white"
-          @click="openCreate"
-        >
+      <button
+        type="button"
+        class="rounded-md bg-slate-900 px-3 py-2 text-sm font-medium text-white"
+        @click="openCreate"
+      >
+        <span class="inline-flex items-center gap-2">
+          <Icon icon="mdi:plus" class="h-4 w-4" />
           New Product
-        </button>
+        </span>
+      </button>
       </div>
     </div>
 
@@ -178,12 +182,22 @@ const onLimitSelect = async (next: number) => {
               {{ product.description }}
             </p>
           </div>
-          <div class="absolute right-3 top-2 flex gap-2">
-            <button type="button" class="text-sm font-medium text-slate-900 underline" @click="openEdit(product)">
-              Edit
+          <div class="absolute right-3 top-2 flex">
+            <button
+              type="button"
+              class="inline-flex items-center rounded-md p-1 text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+              title="Edit"
+              @click="openEdit(product)"
+            >
+              <Icon icon="mdi:pencil" class="h-5 w-5" />
             </button>
-            <button type="button" class="text-sm font-medium text-red-600 underline" @click="">
-              Delete
+            <button
+              type="button"
+              class="inline-flex items-center rounded-md p-1 text-slate-600 hover:bg-red-50 hover:text-red-700"
+              title="Delete"
+              @click=""
+            >
+              <Icon icon="mdi:delete" class="h-5 w-5" />
             </button>
           </div>
         </div>
@@ -243,7 +257,7 @@ const onLimitSelect = async (next: number) => {
             class="w-full rounded-md bg-slate-900 px-3 py-2 text-sm font-medium text-white disabled:opacity-60"
             :disabled="submitting"
           >
-            {{ mode === 'edit' ? 'Save' : 'Create' }}
+            {{ mode === 'edit' ? 'Update' : 'Create' }}
           </button>
         </div>
       </form>

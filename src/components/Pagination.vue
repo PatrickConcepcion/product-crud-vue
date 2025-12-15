@@ -56,7 +56,7 @@ const onPageSizeChange = (e: Event) => {
 </script>
 
 <template>
-  <nav class="flex flex-col justify-center items-center gap-3 sm:flex-row" aria-label="Pagination">
+  <nav class="flex flex-col justify-end items-center gap-3 sm:flex-row" aria-label="Pagination">
     <div class="flex items-center justify-center gap-2">
       <button
         type="button"
