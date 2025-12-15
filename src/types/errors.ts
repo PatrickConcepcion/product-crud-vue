@@ -1,4 +1,4 @@
-export type FieldErrors = Record<string, string>
+export type FieldErrors = Record<string, string | undefined>
 
 export type BackendErrorPayload = {
   success?: false
