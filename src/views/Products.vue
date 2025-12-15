@@ -17,6 +17,9 @@ const mode = ref<'create' | 'edit'>('create')
 const selected = ref<Product | null>(null)
 const isDeleteModalOpen = ref(false)
 const productToDelete = ref<Product | null>(null)
+const isViewModalOpen = ref(false)
+const viewingProduct = ref<Product | null>(null)
+const viewingLoading = ref(false)
 
 const productStore = useProductStore()
 const { page, limit, totalPages, loading } = storeToRefs(productStore)
@@ -174,6 +177,26 @@ const closeDeleteModal = () => {
   isDeleteModalOpen.value = false
   productToDelete.value = null
 }
+
+const openViewModal = async (product: Product) => {
+  viewingLoading.value = true
+  isViewModalOpen.value = true
+
+  try {
+    const fullProduct = await productStore.getOne(product.id)
+    viewingProduct.value = fullProduct
+  } catch (e) {
+    console.log(e)
+    isViewModalOpen.value = false
+  } finally {
+    viewingLoading.value = false
+  }
+}
+
+const closeViewModal = () => {
+  isViewModalOpen.value = false
+  viewingProduct.value = null
+}
 </script>
 
 <template>
@@ -202,7 +225,8 @@ const closeDeleteModal = () => {
         <div
           v-for="product in productStore.items"
           :key="product.id"
-          class="relative rounded-md border border-slate-200 bg-white px-3 py-2"
+          class="relative rounded-md border border-slate-200 bg-white px-3 py-2 cursor-pointer hover:shadow-md transition-shadow"
+          @click="openViewModal(product)"
         >
           <div class="pr-20">
             <p class="text-sm font-medium text-slate-900">{{ product.name }}</p>
@@ -211,22 +235,22 @@ const closeDeleteModal = () => {
               {{ product.description }}
             </p>
           </div>
-          <div class="absolute right-3 top-2 flex">
+          <div class="absolute right-3 top-2 flex pointer-events-none">
             <button
               type="button"
-              class="inline-flex items-center rounded-md p-1 text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+              class="pointer-events-auto inline-flex items-center rounded-md p-1 text-slate-600 hover:bg-slate-100 hover:text-slate-900"
               title="Edit"
               aria-label="Edit product"
-              @click="openEdit(product)"
+              @click.stop="openEdit(product)"
             >
               <Icon icon="mdi:pencil" class="h-5 w-5" />
             </button>
             <button
               type="button"
-              class="inline-flex items-center rounded-md p-1 text-slate-600 hover:bg-red-50 hover:text-red-700"
+              class="pointer-events-auto inline-flex items-center rounded-md p-1 text-slate-600 hover:bg-red-50 hover:text-red-700"
               title="Delete"
               aria-label="Delete product"
-              @click="openDeleteModal(product)"
+              @click.stop="openDeleteModal(product)"
             >
               <Icon icon="mdi:delete" class="h-5 w-5" />
             </button>
@@ -315,6 +339,41 @@ const closeDeleteModal = () => {
             @click="confirmDelete"
           >
             Delete
+          </button>
+        </div>
+      </div>
+    </Modal>
+
+    <Modal v-model="isViewModalOpen" title="Product Details" @update:modelValue="closeViewModal">
+      <div v-if="viewingLoading" class="flex items-center justify-center py-8">
+        <div class="text-sm text-slate-600">Loading...</div>
+      </div>
+      <div v-else-if="viewingProduct" class="space-y-4">
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div>
+            <label class="text-xs font-medium text-slate-500 uppercase tracking-wide">Name</label>
+            <p class="mt-1 text-sm font-medium text-slate-900">{{ viewingProduct.name }}</p>
+          </div>
+          <div>
+            <label class="text-xs font-medium text-slate-500 uppercase tracking-wide">Price</label>
+            <p class="mt-1 text-sm font-medium text-slate-900">${{ viewingProduct.price }}</p>
+          </div>
+        </div>
+
+        <div>
+          <label class="text-xs font-medium text-slate-500 uppercase tracking-wide">Description</label>
+          <p class="mt-1 text-sm text-slate-700">
+            {{ viewingProduct.description || 'No description provided' }}
+          </p>
+        </div>
+
+        <div class="flex justify-end pt-4">
+          <button
+            type="button"
+            class="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-900 hover:bg-slate-50"
+            @click="closeViewModal"
+          >
+            Close
           </button>
         </div>
       </div>
