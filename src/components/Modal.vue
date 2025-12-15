@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
+import { Icon } from '@iconify/vue'
 
 const props = withDefaults(
   defineProps<{
@@ -76,10 +77,11 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
             <h2 class="text-base font-semibold text-slate-900">{{ title }}</h2>
             <button
               type="button"
-              class="rounded-md px-2 py-1 text-sm font-medium text-slate-700 hover:bg-slate-100"
+              class="inline-flex items-center rounded-md p-2 text-slate-600 hover:bg-slate-100 hover:text-slate-900"
               @click="close"
+              aria-label="Close"
             >
-              Close
+              <Icon icon="mdi:close" class="h-5 w-5" />
             </button>
           </header>
 
@@ -91,4 +93,3 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
     </div>
   </Teleport>
 </template>
-
