@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { useApiError } from '../composables/useApiError'
 import api from '../api/axios'
-import type { LoginPayload, LoginResponse, LogoutResponse, RegisterPayload, RegisterResponse } from '../types/auth'
+import type { LoginPayload, LoginResponse, LogoutResponse, MeResponse, RegisterPayload, RegisterResponse, User } from '../types/auth'
 import { RequestError } from '../lib/requestError'
 
 export const useAuthStore = defineStore('auth', () => {
@@ -12,17 +12,24 @@ export const useAuthStore = defineStore('auth', () => {
   const loading = ref(false)
   const error = ref<string | null>(null)
   const flashSuccess = ref<string | null>(null)
+  const user = ref<User | null>(null)
 
   const isAuthenticated = computed(() => Boolean(token.value))
+  const displayName = computed(() => {
+    if (!user.value) return ''
+    return `${user.value.firstName} ${user.value.lastName}`.trim()
+  })
 
   const initialize = () => {
     token.value = localStorage.getItem('accessToken')
+    if (token.value) void me().catch(() => setToken(null))
   }
 
   const setToken = (nextToken: string | null) => {
     token.value = nextToken
     if (nextToken) localStorage.setItem('accessToken', nextToken)
     else localStorage.removeItem('accessToken')
+    if (!nextToken) user.value = null
   }
 
   const login = async (payload: LoginPayload): Promise<LoginResponse> => {
@@ -37,6 +44,7 @@ export const useAuthStore = defineStore('auth', () => {
         throw new RequestError('Login failed')
       }
       setToken(accessToken)
+      await me().catch(() => undefined)
       return res.data
     } catch (err: unknown) {
       throw throwApiError(err, 'Login failed')
@@ -76,14 +84,26 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       const res = await api.post<LogoutResponse>(`/auth/logout`, {}, { headers: { Authorization: `Bearer ${currentToken}` } })
       return res.data
-    } catch {
-      // Ignore; token already cleared locally.
-      return
+    } catch (err: unknown){
+      throw throwApiError(err, 'Logout failed')
+    }
+  }
+
+  const me = async (): Promise<User> => {
+    try {
+      const res = await api.get<MeResponse>('/auth/me', { headers: { Authorization: `Bearer ${token.value}` } })
+      user.value = res.data.user
+      return res.data.user
+    } catch (err: unknown) {
+      user.value = null
+      throw throwApiError(err, 'Fetching of your profile failed')
     }
   }
 
   return {
     token,
+    user,
+    displayName,
     loading,
     error,
     flashSuccess,
@@ -94,5 +114,6 @@ export const useAuthStore = defineStore('auth', () => {
     register,
     consumeFlashSuccess,
     logout,
+    me,
   }
 })

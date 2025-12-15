@@ -27,6 +27,10 @@ export type User = {
   updatedAt: string
 }
 
+export type MeResponse = {
+  user: User
+}
+
 export type RegisterResponse = {
   message: string
   data: User
