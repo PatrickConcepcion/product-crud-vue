@@ -145,6 +145,15 @@ const onLimitSelect = async (next: number) => {
   limit.value = next
   await onLimitChange()
 }
+
+const onDelete = async (product: Product) => {
+  try {
+    await productStore.deleteItem(product.id)
+    await productStore.getAll(page.value, limit.value)
+  } catch (e) {
+    console.log(e)
+  }
+}
 </script>
 
 <template>
@@ -197,7 +206,7 @@ const onLimitSelect = async (next: number) => {
               class="inline-flex items-center rounded-md p-1 text-slate-600 hover:bg-red-50 hover:text-red-700"
               title="Delete"
               aria-label="Delete product"
-              @click=""
+              @click="onDelete(product)"
             >
               <Icon icon="mdi:delete" class="h-5 w-5" />
             </button>
