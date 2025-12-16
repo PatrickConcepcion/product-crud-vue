@@ -2,7 +2,6 @@ import axios, { AxiosError, type AxiosInstance } from 'axios'
 import { pinia } from '../pinia'
 import { useAuthStore } from '../stores/auth'
 import type { CustomAxiosRequestConfig } from '../types/axios'
-import type { RefreshResponse } from '../types/auth'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
 if (!API_BASE_URL) {
@@ -11,34 +10,25 @@ if (!API_BASE_URL) {
 
 const api: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
     Accept: 'application/json',
   },
 })
 
-api.interceptors.request.use(
-  (config: CustomAxiosRequestConfig) => {
-    const authStore = useAuthStore(pinia)
-    const token = authStore.token ?? localStorage.getItem('accessToken')
-    if (token) config.headers.Authorization = `Bearer ${token}`
-    return config
-  },
-  (error: AxiosError) => Promise.reject(error),
-)
+let refreshPromise: Promise<boolean> | null = null
 
-let refreshPromise: Promise<string | null> | null = null
-
-async function refreshAccessToken(currentToken: string): Promise<string | null> {
+async function refreshSession(): Promise<boolean> {
   try {
-    const res = await axios.post<RefreshResponse>(
+    await axios.post(
       `${API_BASE_URL}/auth/refresh`,
       {},
-      { headers: { Authorization: `Bearer ${currentToken}` } },
+      { withCredentials: true },
     )
-    return res.data?.data?.accessToken ?? null
+    return true
   } catch {
-    return null
+    return false
   }
 }
 
@@ -55,24 +45,18 @@ api.interceptors.response.use(
       originalRequest._retry = true
 
       const authStore = useAuthStore(pinia)
-      const currentToken = authStore.token ?? localStorage.getItem('accessToken')
 
-      if (currentToken) {
-        refreshPromise ??= refreshAccessToken(currentToken).finally(() => {
-          refreshPromise = null
-        })
+      refreshPromise ??= refreshSession().finally(() => {
+        refreshPromise = null
+      })
 
-        const newToken = await refreshPromise
-        if (newToken) {
-          authStore.setToken(newToken)
-          originalRequest.headers = originalRequest.headers ?? {}
-          originalRequest.headers.Authorization = `Bearer ${newToken}`
-          return api(originalRequest)
-        }
-      }
+      const refreshed = await refreshPromise
+      if (refreshed) return api(originalRequest)
 
-      authStore.setToken(null)
-      window.location.href = '/login'
+      authStore.clearSession()
+      const path = window.location.pathname
+      const isAuthRoute = path === '/login' || path === '/register'
+      if (!isAuthRoute) window.location.href = '/login'
     }
 
     return Promise.reject(error)

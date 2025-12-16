@@ -3,30 +3,36 @@ import { ref, computed } from 'vue'
 import { useApiError } from '../composables/useApiError'
 import api from '../api/axios'
 import type { LoginPayload, LoginResponse, LogoutResponse, RegisterPayload, RegisterResponse } from '../types/auth'
-import { RequestError } from '../lib/requestError'
 import { useUserStore } from './user'
 
 export const useAuthStore = defineStore('auth', () => {
   const { throwApiError } = useApiError()
   const userStore = useUserStore()
 
-  const token = ref<string | null>(null)
   const loading = ref(false)
   const error = ref<string | null>(null)
   const flashSuccess = ref<string | null>(null)
+  const initialized = ref(false)
+  let initializePromise: Promise<void> | null = null
 
-  const isAuthenticated = computed(() => Boolean(token.value))
+  const isAuthenticated = computed(() => Boolean(userStore.user))
 
-  const initialize = () => {
-    token.value = localStorage.getItem('accessToken')
-    if (token.value) void userStore.me().catch(() => setToken(null))
+  const initialize = async () => {
+    if (initialized.value) return
+    initializePromise ??= userStore
+      .me()
+      .catch(() => userStore.clearUser())
+      .then(() => undefined)
+      .finally(() => {
+        initialized.value = true
+        initializePromise = null
+      })
+    return initializePromise
   }
 
-  const setToken = (nextToken: string | null) => {
-    token.value = nextToken
-    if (nextToken) localStorage.setItem('accessToken', nextToken)
-    else localStorage.removeItem('accessToken')
-    if (!nextToken) userStore.clearUser()
+  const clearSession = () => {
+    userStore.clearUser()
+    initialized.value = true
   }
 
   const login = async (payload: LoginPayload): Promise<LoginResponse> => {
@@ -35,13 +41,8 @@ export const useAuthStore = defineStore('auth', () => {
 
     try {
       const res = await api.post<LoginResponse>(`/auth/login`, payload)
-      const accessToken = res.data?.data?.accessToken
-      if (!accessToken) {
-        error.value = 'Login failed'
-        throw new RequestError('Login failed')
-      }
-      setToken(accessToken)
-      await userStore.me().catch(() => undefined)
+      await userStore.me()
+      initialized.value = true
       return res.data
     } catch (err: unknown) {
       throw throwApiError(err, 'Login failed')
@@ -72,14 +73,11 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   const logout = async (): Promise<LogoutResponse | undefined> => {
-    const currentToken = token.value
-    setToken(null)
+    clearSession()
     error.value = null
 
-    if (!currentToken) return
-
     try {
-      const res = await api.post<LogoutResponse>(`/auth/logout`, {}, { headers: { Authorization: `Bearer ${currentToken}` } })
+      const res = await api.post<LogoutResponse>(`/auth/logout`)
       return res.data
     } catch (err: unknown){
       throw throwApiError(err, 'Logout failed')
@@ -87,13 +85,12 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   return {
-    token,
     loading,
     error,
     flashSuccess,
     isAuthenticated,
     initialize,
-    setToken,
+    clearSession,
     login,
     register,
     consumeFlashSuccess,

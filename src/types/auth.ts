@@ -13,9 +13,6 @@ export type RegisterPayload = {
 
 export type LoginResponse = {
   message: string
-  data?: {
-    accessToken?: string
-  }
 }
 
 export type User = {
@@ -41,7 +38,5 @@ export type LogoutResponse = {
 }
 
 export type RefreshResponse = {
-  data?: {
-    accessToken?: string
-  }
+  message: string
 }

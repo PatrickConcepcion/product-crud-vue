@@ -15,7 +15,7 @@ app.use(Vue3Toastify, {
   autoClose: 3000,
 } as ToastContainerOptions)
 
-useAuthStore(pinia).initialize()
+void useAuthStore(pinia).initialize()
 app.use(router)
 
 app.mount('#app')

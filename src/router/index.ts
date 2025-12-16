@@ -14,12 +14,12 @@ const router = createRouter({
   ],
 })
 
-router.beforeEach((to) => {
+router.beforeEach(async (to) => {
   const authStore = useAuthStore(pinia)
-  const token = authStore.token
+  await authStore.initialize()
   const isAuthRoute = to.name === 'login' || to.name === 'register'
-  if (!token && !isAuthRoute) return { name: 'login' }
-  if (token && isAuthRoute) return { name: 'products' }
+  if (!authStore.isAuthenticated && !isAuthRoute) return { name: 'login' }
+  if (authStore.isAuthenticated && isAuthRoute) return { name: 'products' }
 })
 
 export default router
