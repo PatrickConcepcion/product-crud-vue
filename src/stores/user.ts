@@ -16,7 +16,7 @@ export const useUserStore = defineStore('user', () => {
     error.value = null
 
     try {
-      const res = await api.get<MeResponse>('/users/me', { headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` } })
+      const res = await api.get<MeResponse>('/users/me')
       user.value = res.data.user
       return res.data.user
     } catch (err: unknown) {

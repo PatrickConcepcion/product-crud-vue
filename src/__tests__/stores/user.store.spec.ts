@@ -11,25 +11,6 @@ vi.mock('../../api/axios', () => ({
   },
 }))
 
-// Mock localStorage
-const localStorageMock = (() => {
-  let store: Record<string, string> = {}
-  return {
-    getItem: vi.fn((key: string) => store[key] ?? null),
-    setItem: vi.fn((key: string, value: string) => {
-      store[key] = value
-    }),
-    removeItem: vi.fn((key: string) => {
-      delete store[key]
-    }),
-    clear: () => {
-      store = {}
-    },
-  }
-})()
-
-Object.defineProperty(global, 'localStorage', { value: localStorageMock })
-
 import api from '../../api/axios'
 
 const mockUser: User = {
@@ -45,7 +26,6 @@ describe('useUserStore', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
     vi.clearAllMocks()
-    localStorageMock.clear()
   })
 
   describe('initial state', () => {
@@ -60,7 +40,6 @@ describe('useUserStore', () => {
 
   describe('me', () => {
     it('fetches and stores current user', async () => {
-      localStorageMock.getItem.mockReturnValue('test-token')
       vi.mocked(api.get).mockResolvedValueOnce({
         data: { user: mockUser },
       })
@@ -72,18 +51,13 @@ describe('useUserStore', () => {
       expect(store.user).toEqual(mockUser)
     })
 
-    it('sends authorization header', async () => {
-      localStorageMock.getItem.mockReturnValue('my-token')
-      vi.mocked(api.get).mockResolvedValueOnce({
-        data: { user: mockUser },
-      })
+    it('calls users/me endpoint', async () => {
+      vi.mocked(api.get).mockResolvedValueOnce({ data: { user: mockUser } })
 
       const store = useUserStore()
       await store.me()
 
-      expect(api.get).toHaveBeenCalledWith('/users/me', {
-        headers: { Authorization: 'Bearer my-token' },
-      })
+      expect(api.get).toHaveBeenCalledWith('/users/me')
     })
 
     it('sets loading state', async () => {

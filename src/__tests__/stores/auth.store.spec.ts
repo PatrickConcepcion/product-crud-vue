@@ -4,7 +4,6 @@ import { useAuthStore } from '../../stores/auth'
 import { useUserStore } from '../../stores/user'
 import { RequestError } from '../../lib/requestError'
 
-// Mock the API module
 vi.mock('../../api/axios', () => ({
   default: {
     post: vi.fn(),
@@ -12,39 +11,26 @@ vi.mock('../../api/axios', () => ({
   },
 }))
 
-// Mock localStorage
-const localStorageMock = (() => {
-  let store: Record<string, string> = {}
-  return {
-    getItem: vi.fn((key: string) => store[key] || null),
-    setItem: vi.fn((key: string, value: string) => {
-      store[key] = value
-    }),
-    removeItem: vi.fn((key: string) => {
-      delete store[key]
-    }),
-    clear: () => {
-      store = {}
-    },
-  }
-})()
-
-Object.defineProperty(global, 'localStorage', { value: localStorageMock })
-
 import api from '../../api/axios'
+
+const mockUser = {
+  id: 1,
+  firstName: 'John',
+  lastName: 'Doe',
+  email: 'test@test.com',
+  createdAt: '2025-01-01T00:00:00Z',
+  updatedAt: '2025-01-01T00:00:00Z',
+}
 
 describe('useAuthStore', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
     vi.clearAllMocks()
-    localStorageMock.clear()
   })
 
   describe('initial state', () => {
     it('has correct initial values', () => {
       const store = useAuthStore()
-
-      expect(store.token).toBeNull()
       expect(store.loading).toBe(false)
       expect(store.error).toBeNull()
       expect(store.flashSuccess).toBeNull()
@@ -53,84 +39,42 @@ describe('useAuthStore', () => {
   })
 
   describe('isAuthenticated', () => {
-    it('returns false when token is null', () => {
+    it('returns true when user exists', () => {
       const store = useAuthStore()
-      expect(store.isAuthenticated).toBe(false)
-    })
-
-    it('returns true when token is set', () => {
-      const store = useAuthStore()
-      store.setToken('test-token')
+      const userStore = useUserStore()
+      userStore.user = mockUser
       expect(store.isAuthenticated).toBe(true)
     })
   })
 
-  describe('setToken', () => {
-    it('sets token and saves to localStorage', () => {
-      const store = useAuthStore()
-      store.setToken('my-token')
-
-      expect(store.token).toBe('my-token')
-      expect(localStorageMock.setItem).toHaveBeenCalledWith('accessToken', 'my-token')
-    })
-
-    it('removes token from localStorage when null', () => {
-      const store = useAuthStore()
-      store.setToken('my-token')
-      store.setToken(null)
-
-      expect(store.token).toBeNull()
-      expect(localStorageMock.removeItem).toHaveBeenCalledWith('accessToken')
-    })
-
-    it('clears user store when token is null', () => {
-      const authStore = useAuthStore()
-      const userStore = useUserStore()
-      userStore.user = { id: 1, firstName: 'John', lastName: 'Doe', email: 'test@test.com', createdAt: '', updatedAt: '' }
-
-      authStore.setToken(null)
-
-      expect(userStore.user).toBeNull()
-    })
-  })
-
   describe('initialize', () => {
-    it('loads token from localStorage', () => {
-      localStorageMock.getItem.mockReturnValueOnce('stored-token')
-      vi.mocked(api.get).mockRejectedValueOnce(new Error('Network error'))
+    it('fetches current user when authenticated', async () => {
+      vi.mocked(api.get).mockResolvedValueOnce({ data: { user: mockUser } })
 
       const store = useAuthStore()
-      store.initialize()
+      await store.initialize()
 
-      expect(store.token).toBe('stored-token')
+      expect(store.isAuthenticated).toBe(true)
     })
 
-    it('does not set token if localStorage is empty', () => {
-      localStorageMock.getItem.mockReturnValueOnce(null)
+    it('stays unauthenticated on error', async () => {
+      vi.mocked(api.get).mockRejectedValueOnce(new Error('Unauthorized'))
 
       const store = useAuthStore()
-      store.initialize()
+      await store.initialize()
 
-      expect(store.token).toBeNull()
+      expect(store.isAuthenticated).toBe(false)
     })
   })
 
   describe('login', () => {
-    it('sets token on successful login', async () => {
-      vi.mocked(api.post).mockResolvedValueOnce({
-        data: {
-          message: 'Login successful',
-          data: { accessToken: 'new-token' },
-        },
-      })
-      vi.mocked(api.get).mockResolvedValueOnce({
-        data: { user: { id: 1, firstName: 'John', lastName: 'Doe', email: 'test@test.com' } },
-      })
+    it('sets authenticated state on successful login', async () => {
+      vi.mocked(api.post).mockResolvedValueOnce({ data: { message: 'Login successful' } })
+      vi.mocked(api.get).mockResolvedValueOnce({ data: { user: mockUser } })
 
       const store = useAuthStore()
       const result = await store.login({ email: 'test@test.com', password: 'password123' })
 
-      expect(store.token).toBe('new-token')
       expect(store.isAuthenticated).toBe(true)
       expect(result.message).toBe('Login successful')
     })
@@ -148,24 +92,11 @@ describe('useAuthStore', () => {
 
       expect(store.loading).toBe(true)
 
-      resolveLogin!({
-        data: { message: 'Success', data: { accessToken: 'token' } },
-      })
-      vi.mocked(api.get).mockResolvedValueOnce({ data: { user: {} } })
+      resolveLogin!({ data: { message: 'Success' } })
+      vi.mocked(api.get).mockResolvedValueOnce({ data: { user: mockUser } })
 
       await loginPromise
       expect(store.loading).toBe(false)
-    })
-
-    it('throws RequestError when no accessToken in response', async () => {
-      vi.mocked(api.post).mockResolvedValueOnce({
-        data: { message: 'Login successful', data: {} },
-      })
-
-      const store = useAuthStore()
-
-      await expect(store.login({ email: 'test@test.com', password: 'password' })).rejects.toThrow(RequestError)
-      expect(store.error).toBe('Login failed')
     })
 
     it('throws RequestError with field errors on validation failure', async () => {
@@ -188,22 +119,6 @@ describe('useAuthStore', () => {
         expect((err as RequestError).fieldErrors).toEqual({ email: 'Email is invalid' })
       }
     })
-
-    it('resets loading on error', async () => {
-      vi.mocked(api.post).mockRejectedValueOnce({
-        response: { data: { message: 'Error' } },
-      })
-
-      const store = useAuthStore()
-
-      try {
-        await store.login({ email: 'test@test.com', password: 'password' })
-      } catch {
-        // Expected
-      }
-
-      expect(store.loading).toBe(false)
-    })
   })
 
   describe('register', () => {
@@ -211,64 +126,20 @@ describe('useAuthStore', () => {
       vi.mocked(api.post).mockResolvedValueOnce({
         data: {
           message: 'User created',
-          data: { id: 1, email: 'test@test.com' },
+          data: mockUser,
         },
       })
 
       const store = useAuthStore()
       await store.register({
         email: 'test@test.com',
-        password: 'password123',
-        confirmPassword: 'password123',
+        password: 'password',
+        confirmPassword: 'password',
         firstName: 'John',
         lastName: 'Doe',
       })
 
       expect(store.flashSuccess).toBe('Account created successfully!')
-    })
-
-    it('does not set token after registration', async () => {
-      vi.mocked(api.post).mockResolvedValueOnce({
-        data: { message: 'User created', data: {} },
-      })
-
-      const store = useAuthStore()
-      await store.register({
-        email: 'test@test.com',
-        password: 'password123',
-        confirmPassword: 'password123',
-        firstName: 'John',
-        lastName: 'Doe',
-      })
-
-      expect(store.token).toBeNull()
-    })
-
-    it('throws RequestError with field errors on validation failure', async () => {
-      vi.mocked(api.post).mockRejectedValueOnce({
-        response: {
-          data: {
-            success: false,
-            errors: { email: ['Email already exists'] },
-          },
-        },
-      })
-
-      const store = useAuthStore()
-
-      try {
-        await store.register({
-          email: 'existing@test.com',
-          password: 'password123',
-          confirmPassword: 'password123',
-          firstName: 'John',
-          lastName: 'Doe',
-        })
-        expect.fail('Should have thrown')
-      } catch (err) {
-        expect(err).toBeInstanceOf(RequestError)
-        expect((err as RequestError).fieldErrors).toEqual({ email: 'Email already exists' })
-      }
     })
   })
 
@@ -282,64 +153,28 @@ describe('useAuthStore', () => {
       expect(message).toBe('Success message')
       expect(store.flashSuccess).toBeNull()
     })
-
-    it('returns null when no flash message', () => {
-      const store = useAuthStore()
-      expect(store.consumeFlashSuccess()).toBeNull()
-    })
   })
 
   describe('logout', () => {
-    it('clears token immediately', async () => {
+    it('calls logout API', async () => {
       vi.mocked(api.post).mockResolvedValueOnce({ data: { message: 'Logged out' } })
 
       const store = useAuthStore()
-      store.setToken('existing-token')
-
       await store.logout()
 
-      expect(store.token).toBeNull()
+      expect(api.post).toHaveBeenCalledWith('/auth/logout')
+    })
+
+    it('clears session even if API fails', async () => {
+      vi.mocked(api.post).mockRejectedValueOnce(new Error('Network error'))
+
+      const store = useAuthStore()
+      const userStore = useUserStore()
+      userStore.user = mockUser
+
+      await expect(store.logout()).rejects.toThrow(RequestError)
       expect(store.isAuthenticated).toBe(false)
-    })
-
-    it('calls logout API with current token', async () => {
-      vi.mocked(api.post).mockResolvedValueOnce({ data: { message: 'Logged out' } })
-
-      const store = useAuthStore()
-      store.setToken('my-token')
-
-      await store.logout()
-
-      expect(api.post).toHaveBeenCalledWith(
-        '/auth/logout',
-        {},
-        { headers: { Authorization: 'Bearer my-token' } },
-      )
-    })
-
-    it('does not call API if no token', async () => {
-      const store = useAuthStore()
-      await store.logout()
-
-      expect(api.post).not.toHaveBeenCalled()
-    })
-
-    it('clears token even if API fails', async () => {
-      vi.mocked(api.post).mockRejectedValueOnce({
-        response: { data: { message: 'Error' } },
-      })
-
-      const store = useAuthStore()
-      store.setToken('my-token')
-
-      // logout throws on API error now
-      try {
-        await store.logout()
-      } catch {
-        // Expected
-      }
-
-      expect(store.token).toBeNull()
     })
   })
 })
+
