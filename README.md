@@ -53,8 +53,10 @@ cp .env.example .env
 Edit `.env` and set the API base URL:
 
 ```dotenv
-VITE_API_BASE_URL=http://localhost:3000
+VITE_API_BASE_URL=http://localhost:3001
 ```
+
+Note: You may edit the endpoint but I used 3001 instead of 3000 due to some conflicts with my other project
 
 > **Note:** The backend API must be running on the specified URL.
 
